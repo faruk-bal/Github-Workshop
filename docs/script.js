@@ -14,6 +14,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // Initialize Progress Tracking (if article exists)
     initProgress();
 
+    // Sidebar Rendering
+    renderSidebar();
+
     // Sidebar Toggle
     const sidebarToggle = document.getElementById('sidebarToggle');
     const sidebar = document.getElementById('sidebar');
@@ -30,18 +33,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
-
-    // Active navigation item based on current page
-    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-    const navItems = document.querySelectorAll('.nav-item');
-
-    navItems.forEach(item => {
-        item.classList.remove('active');
-        const href = item.getAttribute('href');
-        if (href === currentPage || (currentPage === '' && href === 'index.html')) {
-            item.classList.add('active');
-        }
-    });
 
     // Smooth scroll for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -72,13 +63,16 @@ document.addEventListener('DOMContentLoaded', function () {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     const id = entry.target.getAttribute('id');
+                    const navItems = document.querySelectorAll('.nav-item');
+                    // Reset active state for sub-items
+                    navItems.forEach(item => {
+                        if (item.getAttribute('href').includes('#')) {
+                            item.classList.remove('active');
+                        }
+                    });
+
                     const navLink = document.querySelector(`.nav-item[href*="#${id}"]`);
                     if (navLink) {
-                        navItems.forEach(item => {
-                            if (item.getAttribute('href').includes('#')) {
-                                item.classList.remove('active');
-                            }
-                        });
                         navLink.classList.add('active');
                     }
                 }
@@ -88,6 +82,159 @@ document.addEventListener('DOMContentLoaded', function () {
         sections.forEach(section => observer.observe(section));
     }
 });
+
+// Sidebar Navigation Data
+const sidebarNavigation = [
+    {
+        title: "",
+        items: [
+            { text: "Wiki Ana Sayfa", url: "wiki.html", icon: "fas fa-book" },
+            { text: "← Tanıtım Sayfası", url: "index.html", icon: "fas fa-home" }
+        ]
+    },
+    {
+        title: "Modül 1: Giriş",
+        icon: "fas fa-rocket",
+        items: [
+            { text: "Git ve GitHub Nedir?", url: "module1.html" },
+            { text: "Student Developer Pack", url: "module1.html#student-pack" },
+            { text: "GUI Araçları", url: "module1.html#gui" }
+        ]
+    },
+    {
+        title: "Modül 2: Temel Beceriler",
+        icon: "fas fa-code",
+        items: [
+            { text: "Git Komutları", url: "module2.html" },
+            { text: "Markdown", url: "module2.html#markdown" },
+            { text: "Lisanslar", url: "module2.html#licenses" }
+        ]
+    },
+    {
+        title: "Modül 3: İş Akışı",
+        icon: "fas fa-code-branch",
+        items: [
+            { text: "Branch Yönetimi", url: "module3.html" },
+            { text: "Fork ve Clone", url: "module3.html#fork" },
+            { text: "Conventional Commits", url: "module3.html#commits" }
+        ]
+    },
+    {
+        title: "Modül 4: Takım Çalışması",
+        icon: "fas fa-users",
+        items: [
+            { text: "Organization", url: "module4.html" },
+            { text: "Pull Request", url: "module4.html#pr" },
+            { text: "Issues ve Projects", url: "module4.html#issues" }
+        ]
+    },
+    {
+        title: "Modül 5: İleri Seviye",
+        icon: "fas fa-bolt",
+        items: [
+            { text: "Rebase ve Stash", url: "module5.html" },
+            { text: "GitHub Actions", url: "module5.html#actions" }
+        ]
+    },
+    {
+        title: "Modül 6: Kariyer",
+        icon: "fas fa-star",
+        items: [
+            { text: "Profile README", url: "module6.html" },
+            { text: "GitHub Pages", url: "module6.html#pages" }
+        ]
+    },
+    {
+        title: "Referanslar",
+        icon: "fas fa-book",
+        items: [
+            { text: "Git Cheat Sheet", url: "cheatsheet-git.html" },
+            { text: "Markdown Cheat Sheet", url: "cheatsheet-markdown.html" },
+            { text: "SSS", url: "faq.html" }
+        ]
+    }
+];
+
+function renderSidebar() {
+    const container = document.getElementById('sidebar-nav-container');
+    if (!container) return; // Might be on a page without sidebar container
+
+    // Search container
+    let html = `
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-input" placeholder="Wiki'de ara...">
+            <div id="searchResults"></div>
+        </div>
+    `;
+
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    const currentHash = window.location.hash;
+
+    sidebarNavigation.forEach(section => {
+        html += `<div class="nav-section">`;
+
+        // Section Title
+        if (section.title) {
+            if (section.icon) {
+                html += `
+                    <div class="nav-section-title">
+                        <i class="${section.icon}"></i>
+                        <span>${section.title}</span>
+                    </div>
+                `;
+            } else {
+                html += `<div class="nav-section-title"><span>${section.title}</span></div>`;
+            }
+        }
+
+        // Section Items
+        section.items.forEach(item => {
+            let isActive = false;
+
+            // Exact match for pages
+            if (item.url === currentPage) {
+                isActive = true;
+            }
+            // Handle hash links if on same page
+            else if (item.url.includes('#')) {
+                const [itemPage, itemHash] = item.url.split('#');
+                if (itemPage === currentPage && itemHash === currentHash.replace('#', '')) {
+                    // This logic is simple, intersection observer will handle scrolling updates
+                }
+            }
+
+            // If main page is active, ensure main link is active (handled better below)
+
+            const activeClass = isActive ? 'active' : '';
+            const iconHtml = item.icon ? `<i class="${item.icon}"></i>` : '';
+
+            html += `
+                <a href="${item.url}" class="nav-item ${activeClass}">
+                    ${iconHtml}
+                    <span>${item.text}</span>
+                </a>
+            `;
+        });
+
+        html += `</div>`;
+    });
+
+    container.innerHTML = html;
+
+    // Initial Active State Logic (Simple)
+    const navItems = container.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+        const itemHref = item.getAttribute('href');
+        if (itemHref === currentPage || (itemHref === 'index.html' && currentPage === '')) {
+            item.classList.add('active');
+        } else if (itemHref.startsWith(currentPage + '#')) {
+            // Sub-items of current page, active if hash matches or if it's the first execution
+            if (window.location.hash && itemHref.endsWith(window.location.hash)) {
+                item.classList.add('active');
+            }
+        }
+    });
+}
 
 // Copy code functionality
 function copyCode(button) {
