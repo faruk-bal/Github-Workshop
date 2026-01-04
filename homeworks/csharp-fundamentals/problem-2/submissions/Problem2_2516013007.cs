@@ -43,4 +43,4 @@ namespace CSharpHomework
             return (gunNumarasi >= 1 && gunNumarasi <= 5) ? "Hafta İçi" : "Hafta Sonu";
         }
     }
-}
+} // GitHub test kontrolü - son deneme
